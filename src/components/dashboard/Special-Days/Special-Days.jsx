@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Calendar,
   ChevronLeft,
@@ -42,70 +42,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { useGetAllSpecialDaysQuery } from "@/app/service/specialDayData"
 
-// Mock special days data
-const specialDaysData = [
-  {
-    id: 1,
-    title: "World Teachers' Day",
-    date: "October 5, 2023",
-    description: "Celebrating teachers worldwide",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 2,
-    title: "Science Fair",
-    date: "November 15, 2023",
-    description: "Annual science exhibition",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 3,
-    title: "International Literacy Day",
-    date: "September 8, 2023",
-    description: "Promoting literacy and education",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 4,
-    title: "Sports Day",
-    date: "December 10, 2023",
-    description: "Annual sports competition",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 5,
-    title: "World Book Day",
-    date: "April 23, 2024",
-    description: "Celebrating books and reading",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 6,
-    title: "Mathematics Olympiad",
-    date: "January 20, 2024",
-    description: "Mathematics competition for students",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 7,
-    title: "Earth Day",
-    date: "April 22, 2024",
-    description: "Environmental awareness day",
-    image: "/placeholder.svg",
-  },
-  {
-    id: 8,
-    title: "Graduation Day",
-    date: "May 30, 2024",
-    description: "Celebrating student achievements",
-    image: "/placeholder.svg",
-  },
-]
+
 
 export default function SpecialDaysPage() {
-  const [specialDays, setSpecialDays] = useState(specialDaysData)
+    const [specialDays, setSpecialDays] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -114,12 +56,25 @@ export default function SpecialDaysPage() {
   const [currentItem, setCurrentItem] = useState(null)
   const itemsPerPage = 6
 
-  // Filter special days based on search term
+  const { data, isError, isLoading } = useGetAllSpecialDaysQuery();
+  
+  
+  useEffect(() => {
+      if (data && Array.isArray(data)) {
+       
+        setSpecialDays(data)
+    }
+    }, [data])   
+  
+    if (isLoading) return <h1>Loading...</h1>;
+    if (isError || !Array.isArray(data))
+      return <h1>Oops! Something went wrong.</h1>;
+
+
+    // Filter special days based on search term
   const filteredDays = specialDays.filter(
     (day) =>
-      day.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      day.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      day.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      day.title.toLowerCase().includes(searchTerm.toLowerCase()) 
   )
 
   // Calculate pagination
@@ -143,6 +98,8 @@ export default function SpecialDaysPage() {
       setIsDeleteDialogOpen(false)
     }
   }
+
+  
 
   return (
     <div className="space-y-6">
@@ -215,9 +172,9 @@ export default function SpecialDaysPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {paginatedDays.map((day) => (
-          <Card key={day.id} className="overflow-hidden">
+          <Card key={day._id} className="overflow-hidden">
             <div className="relative aspect-video">
-              <img src={day.image || "/placeholder.svg"} alt={day.title} fill className="object-cover" />
+              <img src={`${import.meta.env.VITE_API_URL}/images/${day.image}` || "/placeholder.svg"} alt={day.title}  className="object-cover" />
               <div className="absolute top-2 right-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -245,13 +202,13 @@ export default function SpecialDaysPage() {
             </div>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline" className="flex items-center gap-1">
+                {/* <Badge variant="outline" className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {day.date}
-                </Badge>
+                </Badge> */}
               </div>
               <h3 className="font-semibold truncate">{day.title}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{day.description}</p>
+              {/* <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{day.description}</p> */}
             </CardContent>
           </Card>
         ))}
@@ -320,17 +277,16 @@ export default function SpecialDaysPage() {
                 <Label htmlFor="edit-date">Date</Label>
                 <Input id="edit-date" defaultValue={currentItem.date} />
               </div>
-              <div className="grid gap-2">
+              {/* <div className="grid gap-2">
                 <Label htmlFor="edit-description">Description</Label>
                 <Textarea id="edit-description" defaultValue={currentItem.description} />
-              </div>
+              </div> */}
               <div className="grid gap-2">
                 <Label htmlFor="edit-image">Current Image</Label>
                 <div className="relative aspect-video rounded-md overflow-hidden">
                   <img
-                    src={currentItem.image || "/placeholder.svg"}
+                    src={`${import.meta.env.VITE_API_URL}/images/${currentItem.image}`  || "/placeholder.svg"}
                     alt={currentItem.title}
-                    fill
                     className="object-cover"
                   />
                 </div>

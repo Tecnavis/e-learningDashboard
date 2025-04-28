@@ -23,100 +23,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useGetAllUserQuery } from "@/app/service/userData"
 
-// Mock user data
-const users = [
-  {
-    id: 1,
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    role: "Student",
-    status: "Active",
-    lastActive: "Just now",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 2,
-    name: "Jackson Lee",
-    email: "jackson.lee@email.com",
-    role: "Teacher",
-    status: "Active",
-    lastActive: "1 hour ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 3,
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    role: "Student",
-    status: "Inactive",
-    lastActive: "3 hours ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 4,
-    name: "William Kim",
-    email: "william.kim@email.com",
-    role: "Admin",
-    status: "Active",
-    lastActive: "5 hours ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 5,
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    role: "Student",
-    status: "Active",
-    lastActive: "Yesterday",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 6,
-    name: "Ethan Johnson",
-    email: "ethan.johnson@email.com",
-    role: "Teacher",
-    status: "Active",
-    lastActive: "Yesterday",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 7,
-    name: "Emma Wilson",
-    email: "emma.wilson@email.com",
-    role: "Student",
-    status: "Inactive",
-    lastActive: "2 days ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 8,
-    name: "Noah Thompson",
-    email: "noah.thompson@email.com",
-    role: "Student",
-    status: "Active",
-    lastActive: "3 days ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 9,
-    name: "Ava Martinez",
-    email: "ava.martinez@email.com",
-    role: "Teacher",
-    status: "Active",
-    lastActive: "1 week ago",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: 10,
-    name: "Liam Garcia",
-    email: "liam.garcia@email.com",
-    role: "Student",
-    status: "Inactive",
-    lastActive: "2 weeks ago",
-    avatar: "/placeholder.svg",
-  },
-]
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -124,12 +32,23 @@ export default function UsersPage() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false)
   const itemsPerPage = 5
 
+
+   const { data, isError, isLoading } = useGetAllUserQuery();   
+    
+    
+      if (isLoading) return <h1>Loading...</h1>;
+      if (isError || !Array.isArray(data))
+        return <h1>Oops! Something went wrong.</h1>;
+  
+
   // Filter users based on search term
-  const filteredUsers = users.filter(
+  const filteredUsers = data?.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.standard.toLowerCase().includes(searchTerm.toLowerCase()),
+
   )
 
   // Calculate pagination
@@ -166,10 +85,6 @@ export default function UsersPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
 
           <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
             <DialogTrigger asChild>
@@ -236,42 +151,42 @@ export default function UsersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Active</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Standard</TableHead>
+              <TableHead>District</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedUsers.length > 0 ? (
               paginatedUsers.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user._id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                        {
+                            user.image ?
+                            <AvatarImage src={`${import.meta.env.VITE_API_URL}/images/${user.image}` || "/placeholder.svg"} alt={user.name} />
+                            :
                         <AvatarFallback>
                           {user.name.charAt(0)}
-                          {user.name.split(" ")[1]?.charAt(0)}
+                          {user.name.split(" ")[1]?.charAt(0)} 
                         </AvatarFallback>
+
+                        }
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="font-medium">{user.name}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={user.role === "Admin" ? "default" : user.role === "Teacher" ? "outline" : "secondary"}
-                    >
-                      {user.role}
-                    </Badge>
+                      {user?.email}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.status === "Active" ? "success" : "destructive"}>{user.status}</Badge>
+                    <Badge variant={"success" }>{user?.standard}</Badge>
                   </TableCell>
-                  <TableCell>{user.lastActive}</TableCell>
+                  <TableCell>{user?.district}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
