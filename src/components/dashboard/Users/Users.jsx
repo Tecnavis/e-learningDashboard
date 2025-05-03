@@ -1,15 +1,15 @@
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, Download, MoreHorizontal, Plus, Search, SlidersHorizontal } from "lucide-react"
+import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -154,7 +154,7 @@ export default function UsersPage() {
               <TableHead>Email</TableHead>
               <TableHead>Standard</TableHead>
               <TableHead>District</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {/* <TableHead className="text-right">Actions</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -187,7 +187,7 @@ export default function UsersPage() {
                     <Badge variant={"success" }>{user?.standard}</Badge>
                   </TableCell>
                   <TableCell>{user?.district}</TableCell>
-                  <TableCell className="text-right">
+                  {/* <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -202,7 +202,7 @@ export default function UsersPage() {
                         <DropdownMenuItem className="text-destructive">Delete user</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               ))
             ) : (

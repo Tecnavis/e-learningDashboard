@@ -2,7 +2,7 @@ import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 
 export default function ProtectedRoutes() {
-  const admin = localStorage.getItem("admin")  
+  const admin = JSON.parse(localStorage.getItem("admin"));
 
-  return admin  ? <Outlet /> : <Navigate to="/sign-in" />;
+  return admin && admin.token   ? <Outlet /> : <Navigate to="/sign-in" />;
 }

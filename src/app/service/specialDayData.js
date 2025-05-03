@@ -4,7 +4,6 @@ export const specialDaysApi = createApi({
   reducerPath: "specialDays",
   baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
   endpoints: (builder) => ({
-
     //  Get all specialDays (reading)
 
     getAllSpecialDays: builder.query({
@@ -20,43 +19,39 @@ export const specialDaysApi = createApi({
     // Add new specialDays
 
     addNewSpecialDays: builder.mutation({
-      query: (newSpecialDays) => ({
-        url: `/specialdays`,
+      query: (formData) => ({
+        url: "/specialdays",
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: newSpecialDays,
+        body: formData,
       }),
     }),
 
     // Update a specialDays
 
     updateSpecialDays: builder.mutation({
-        query: ({id, updateSpecialDays}) => ({
-            url: `/specialdays/${id}`,
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: updateSpecialDays
-        })
+      query: ({ id, updateSpecialDays }) => ({
+        url: `/specialdays/${id}`,
+        method: "PUT",
+        // headers: { "Content-Type": "application/json" },
+        body: updateSpecialDays,
+      }),
     }),
 
     // Delete a specialDays
 
     deleteSpecialDays: builder.mutation({
-        query: (id) => ({
-            url: `/specialdays/${id}`,
-            method: 'DELETE'
-        })
-    })
-
-
+      query: (id) => ({
+        url: `/specialdays/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
 export const {
-    useGetAllSpecialDaysQuery, 
-    useGetASpecialDaysByIdQuery,
-    useAddNewSpecialDaysMutation, 
-    useUpdateSpecialDaysMutation,
-    useDeleteSpecialDaysMutation,
-  } = specialDaysApi; 
-  
+  useGetAllSpecialDaysQuery,
+  useGetASpecialDaysByIdQuery,
+  useAddNewSpecialDaysMutation,
+  useUpdateSpecialDaysMutation,
+  useDeleteSpecialDaysMutation,
+} = specialDaysApi;

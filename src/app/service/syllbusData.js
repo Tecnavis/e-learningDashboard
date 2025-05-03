@@ -4,7 +4,6 @@ export const syllabusApi = createApi({
   reducerPath: "syllabus",
   baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
   endpoints: (builder) => ({
-
     //  Get all syllabus (reading)
 
     getAllSyllbus: builder.query({
@@ -23,7 +22,6 @@ export const syllabusApi = createApi({
       query: (newSyllbus) => ({
         url: `/syllabus`,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: newSyllbus,
       }),
     }),
@@ -31,56 +29,65 @@ export const syllabusApi = createApi({
     // Update a syllabus
 
     updateSyllbus: builder.mutation({
-        query: ({id, updateSyllbus}) => ({
-            url: `/syllabus/${id}`,
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: updateSyllbus
-        })
+      query: ({ id, updateSyllbus }) => ({
+        url: `/syllabus/${id}`,
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: updateSyllbus,
+      }),
     }),
 
-       // add a syllabus to new class
+    // add a syllabus to new class
 
-       addSyllbusClass: builder.mutation({
-        query: ({id, addSyllbusClass}) => ({
-            url: `/syllabus/add-class/${id}`,
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: addSyllbusClass
-        })
+    addSyllbusClass: builder.mutation({
+      query: ({ id, addSyllbusClass }) => ({
+        url: `/syllabus/add-class/${id}`,
+        method: "PUT",
+        body: addSyllbusClass,
+      }),
     }),
 
-           // add a syllabus rating
+    // add a syllabus rating
 
-           addSyllbusRating: builder.mutation({
-            query: ({id, classNo, subjectTitle, chapterTitle, rating,  userId}) => ({
-                url: `/syllabus/${id}/class/${classNo}/subject/${subjectTitle}/chapter/${chapterTitle}/rating`,
-                method: 'PUT',
-                headers: { "Content-Type": "application/json" },
-                body: { rating,  userId }
-            })
-        }),
+    addSyllbusRating: builder.mutation({
+      query: ({ id, classNo, subjectTitle, chapterTitle, rating, userId }) => ({
+        url: `/syllabus/${id}/class/${classNo}/subject/${subjectTitle}/chapter/${chapterTitle}/rating`,
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: { rating, userId },
+      }),
+    }),
+
+        // delete a syllabus  class
+
+
+    deleteSyllbusAClass: builder.mutation({
+      query: ({id, no }) => ({
+        url: `/syllabus/${id}/class/${no}`,
+        method: "DELETE",
+      }),
+    }),
+  
 
     // Delete a syllabus
 
     deleteSyllbus: builder.mutation({
-        query: (id) => ({
-            url: `/syllabus/${id}`,
-            method: 'DELETE'
-        })
-    })
-
-
+      query: (id) => ({
+        url: `/syllabus/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
+
 });
 
 export const {
-    useGetAllSyllbusQuery, 
-    useGetASyllbusByIdQuery,
-    useAddNewSyllbusMutation, 
-    useUpdateSyllbusMutation,
-    useDeleteSyllbusMutation,
-    useAddSyllbusClassMutation,
-    useAddSyllbusRatingMutation
-  } = syllabusApi; 
-  
+  useGetAllSyllbusQuery,
+  useGetASyllbusByIdQuery,
+  useAddNewSyllbusMutation,
+  useUpdateSyllbusMutation,
+  useDeleteSyllbusMutation,
+  useAddSyllbusClassMutation,
+  useAddSyllbusRatingMutation,
+  useDeleteSyllbusAClassMutation
+} = syllabusApi;

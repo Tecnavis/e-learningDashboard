@@ -22,7 +22,6 @@ export const bannerApi = createApi({
       query: (newBanner) => ({
         url: `/banner`,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: newBanner,
       }),
     }),
@@ -30,44 +29,47 @@ export const bannerApi = createApi({
     // Update a banner
 
     updateBanner: builder.mutation({
-        query: ({id, updateBanner}) => ({
-            url: `/banner/${id}`,
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: updateBanner
-        })
+      query: ({ id, index, updateBanner }) => ({
+        url: `/banner/${id}/no/${index}`,
+        method: "PUT",
+        body: updateBanner,
+      }),
     }),
 
     // Delete a banner
 
     deleteBanner: builder.mutation({
-        query: (id) => ({
-            url: `/banner/${id}`,
-            method: 'DELETE'
-        })
+      query: (id) => ({
+        url: `/banner/${id}`,
+        method: "DELETE",
+      }),
     }),
 
-      // Delete all banner
+    // Delete a banner
 
-      deleteAllBanner: builder.mutation({
-        query: () => ({
-            url: `/banner`,
-            method: 'DELETE'
-        })
-    })
+    deleteABanner: builder.mutation({
+      query: ({ id, index }) => ({
+        url: `/banner/${id}/no/${index}`,
+        method: "DELETE",
+      }),
+    }),
+    // Delete all banner
 
-
-
-
+    deleteAllBanner: builder.mutation({
+      query: () => ({
+        url: `/banner`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
 export const {
-    useGetAllBannerQuery, 
-    useGetABannerByIdQuery,
-    useAddNewBannerMutation, 
-    useUpdateBannerMutation,
-    useDeleteBannerMutation,
-    useDeleteAllBannerMutation
-  } = bannerApi; 
-  
+  useGetAllBannerQuery,
+  useGetABannerByIdQuery,
+  useAddNewBannerMutation,
+  useUpdateBannerMutation,
+  useDeleteBannerMutation,
+  useDeleteAllBannerMutation,
+  useDeleteABannerMutation,
+} = bannerApi;

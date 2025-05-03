@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import {
   Calendar,
   ChevronLeft,
@@ -10,9 +10,9 @@ import {
   Search,
   Trash2,
   Upload,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -21,17 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,71 +40,166 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { useGetAllSpecialDaysQuery } from "@/app/service/specialDayData"
-
-
+} from "@/components/ui/alert-dialog";
+import {
+  useAddNewSpecialDaysMutation,
+  useDeleteSpecialDaysMutation,
+  useGetAllSpecialDaysQuery,
+  useUpdateSpecialDaysMutation,
+} from "@/app/service/specialDayData";
 
 export default function SpecialDaysPage() {
-    const [specialDays, setSpecialDays] = useState([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [currentItem, setCurrentItem] = useState(null)
-  const itemsPerPage = 6
+  const [specialDays, setSpecialDays] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+  const itemsPerPage = 8;
 
-  const { data, isError, isLoading } = useGetAllSpecialDaysQuery();
-  
-  
+  const [formData, setFormData] = useState({
+    title: "",
+    date: "",
+    pdf: "",
+    image: null,
+  });
+
+  const { data, isError, isLoading, refetch } = useGetAllSpecialDaysQuery();
+  const [addNewSpecialDays, { isLoading: isPosting }] =
+    useAddNewSpecialDaysMutation();
+  const [updateSpecialDays, { isLoading: isEditing }] =
+    useUpdateSpecialDaysMutation();
+  const [deleteSpecialDays, { isLoading: isDelete }] =
+    useDeleteSpecialDaysMutation();
+
   useEffect(() => {
-      if (data && Array.isArray(data)) {
-       
-        setSpecialDays(data)
+    if (currentItem) {
+      setFormData({
+        title: currentItem.title || "",
+        date: currentItem.date?.slice(0, 10) || "",
+        pdf: currentItem.pdf || "",
+        image: null,
+        imagePreview: `${import.meta.env.VITE_API_URL}/images/${
+          currentItem.image
+        }`,
+      });
     }
-    }, [data])   
-  
-    if (isLoading) return <h1>Loading...</h1>;
-    if (isError || !Array.isArray(data))
-      return <h1>Oops! Something went wrong.</h1>;
+  }, [currentItem]);
 
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      setSpecialDays(data);
+    }
+  }, [data]);
 
-    // Filter special days based on search term
-  const filteredDays = specialDays.filter(
-    (day) =>
-      day.title.toLowerCase().includes(searchTerm.toLowerCase()) 
-  )
+  // create special day
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const payload = new FormData();
+    payload.append("title", formData.title);
+    payload.append("date", formData.date);
+    payload.append("pdf", formData.pdf);
+    if (formData.image) {
+      payload.append("image", formData.image);
+    }
+
+    try {
+      const response = await addNewSpecialDays(payload).unwrap();
+      if (response?.status === 201) {
+        setIsAddDialogOpen(false);
+        setFormData({ title: "", date: "", pdf: "" });
+        refetch();
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+
+  if (isLoading) return <h1>Loading...</h1>;
+  if (isError || !Array.isArray(data))
+    return <h1>Oops! Something went wrong.</h1>;
+
+  // Filter special days based on search term
+  const filteredDays = specialDays.filter((day) =>
+    day.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredDays.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedDays = filteredDays.slice(startIndex, startIndex + itemsPerPage)
+  const totalPages = Math.ceil(filteredDays.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedDays = filteredDays.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  // edit special day
 
   const handleEdit = (day) => {
-    setCurrentItem(day)
-    setIsEditDialogOpen(true)
-  }
+    setCurrentItem(day);
+    setFormData({
+      title: day.title,
+      date: new Date(day.date).toISOString().split("T")[0], 
+      pdf: day.pdf,
+      image: null,
+    });
+    setIsEditDialogOpen(true);
+  };
 
-  const handleDelete = (day) => {
-    setCurrentItem(day)
-    setIsDeleteDialogOpen(true)
-  }
+  const handleUpdate = async () => {
+    const form = new FormData();
+    form.append("title", formData.title);
+    form.append("date", formData.date);
+    form.append("pdf", formData.pdf);
+    if (formData.image) form.append("image", formData.image);
 
-  const confirmDelete = () => {
-    if (currentItem) {
-      setSpecialDays(specialDays.filter((day) => day.id !== currentItem.id))
-      setIsDeleteDialogOpen(false)
+    try {
+      await updateSpecialDays({
+        id: currentItem._id,
+        updateSpecialDays: form,
+      }).unwrap();
+
+      setIsEditDialogOpen(false);
+      refetch(); // re-fetch updated
+      setFormData({ title: "", date: "", pdf: "", image: null });
+    } catch (err) {
+      console.error("Update failed:", err);
     }
-  }
+  };
 
-  
+  // end edit special day
+
+  //  delete special day
+
+  const handleDelete = (id) => {
+    setCurrentItem(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async (e) => {
+    e.preventDefault();
+    try {
+      const { status } = await deleteSpecialDays(currentItem).unwrap();
+      if (status === 200) {
+        setIsDeleteDialogOpen(false);
+        refetch();
+      }
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+    }
+  };
+
+  // end delete
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Special Days</h1>
-        <p className="text-muted-foreground">Manage special events and celebrations in your academic calendar</p>
+        <p className="text-muted-foreground">
+          Manage special events and celebrations in your academic calendar
+        </p>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -117,54 +211,96 @@ export default function SpecialDaysPage() {
             className="w-full pl-8"
             value={searchTerm}
             onChange={(e) => {
-              setSearchTerm(e.target.value)
-              setCurrentPage(1) // Reset to first page on search
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
             }}
           />
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className={"cursor-pointer"}>
               <Plus className="mr-2 h-4 w-4" />
               Add Special Day
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] w-full">
             <DialogHeader>
               <DialogTitle>Add New Special Day</DialogTitle>
-              <DialogDescription>Create a new special day or event for your calendar.</DialogDescription>
+              <DialogDescription>
+                Create a new special day or event for your calendar.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" placeholder="Enter event title" />
+                <Input
+                  id="title"
+                  placeholder="Enter event title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full" 
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="date">Date</Label>
-                <Input id="date" type="date" />
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
+                  className="w-full" 
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Enter event description" />
+                <Label htmlFor="pdf">PDF URL</Label>
+                <Input
+                  id="pdf"
+                  placeholder="Enter PDF URL"
+                  value={formData.pdf}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pdf: e.target.value })
+                  }
+                  className="w-full"
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="image">Image</Label>
                 <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center gap-2">
                   <ImagePlus className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Drag and drop or click to upload</p>
+                  <p className="text-sm text-muted-foreground">
+                    Drag and drop or click to upload
+                  </p>
                   <Button variant="outline" size="sm">
                     <Upload className="mr-2 h-4 w-4" />
                     Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setFormData({ ...formData, image: e.target.files[0] })
+                      }
+                      className="w-full" 
+                    />
                   </Button>
                 </div>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button onClick={() => setIsAddDialogOpen(false)}>Create Event</Button>
+              <Button onClick={handleSubmit}>
+                {" "}
+                {isPosting ? "Saving..." : "Save"}{" "}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -174,24 +310,38 @@ export default function SpecialDaysPage() {
         {paginatedDays.map((day) => (
           <Card key={day._id} className="overflow-hidden">
             <div className="relative aspect-video">
-              <img src={`${import.meta.env.VITE_API_URL}/images/${day.image}` || "/placeholder.svg"} alt={day.title}  className="object-cover" />
+              <img
+                src={
+                  `${import.meta.env.VITE_API_URL}/images/${day.image}` ||
+                  "/placeholder.svg"
+                }
+                alt={day.title}
+                className="object-cover"
+              />
               <div className="absolute top-2 right-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="bg-background/80 backdrop-blur-sm">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="bg-background/80 backdrop-blur-sm cursor-pointer"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(day)}>
+                    <DropdownMenuItem
+                      onClick={() => handleEdit(day)}
+                      className={"cursor-pointer"}
+                    >
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => handleDelete(day)}
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      onClick={() => handleDelete(day?._id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -202,10 +352,13 @@ export default function SpecialDaysPage() {
             </div>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                {/* <Badge variant="outline" className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {day.date}
-                </Badge> */}
+                <Calendar className="h-3 w-3" />
+                {day?.date &&
+                  new Date(day.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
               </div>
               <h3 className="font-semibold truncate">{day.title}</h3>
               {/* <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{day.description}</p> */}
@@ -220,9 +373,14 @@ export default function SpecialDaysPage() {
           <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">No special days found</h3>
           <p className="text-sm text-muted-foreground text-center mt-1 mb-4">
-            {searchTerm ? "Try a different search term" : "Create your first special day to get started"}
+            {searchTerm
+              ? "Try a different search term"
+              : "Create your first special day to get started"}
           </p>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className={"cursor-pointer"}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add Special Day
           </Button>
@@ -234,8 +392,10 @@ export default function SpecialDaysPage() {
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
-            <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredDays.length)}</span> of{" "}
-            <span className="font-medium">{filteredDays.length}</span> events
+            <span className="font-medium">
+              {Math.min(startIndex + itemsPerPage, filteredDays.length)}
+            </span>{" "}
+            of <span className="font-medium">{filteredDays.length}</span> events
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -250,7 +410,9 @@ export default function SpecialDaysPage() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
@@ -261,71 +423,150 @@ export default function SpecialDaysPage() {
       )}
 
       {/* Edit Dialog */}
+
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] w-full max-w-[90vw]">
           <DialogHeader>
             <DialogTitle>Edit Special Day</DialogTitle>
-            <DialogDescription>Make changes to the special day or event.</DialogDescription>
+            <DialogDescription>
+              Make changes to the special day or event.
+            </DialogDescription>
           </DialogHeader>
+
           {currentItem && (
             <div className="grid gap-4 py-4">
+              {/* Title Input */}
               <div className="grid gap-2">
                 <Label htmlFor="edit-title">Title</Label>
-                <Input id="edit-title" defaultValue={currentItem.title} />
+                <Input
+                  id="edit-title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full"
+                />
               </div>
+
+              {/* Date Input */}
               <div className="grid gap-2">
                 <Label htmlFor="edit-date">Date</Label>
-                <Input id="edit-date" defaultValue={currentItem.date} />
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
+                  className="w-full"
+                />
               </div>
-              {/* <div className="grid gap-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea id="edit-description" defaultValue={currentItem.description} />
-              </div> */}
+
+              {/* PDF Input */}
+              <div className="grid gap-2">
+                <Label htmlFor="edit-pdf">PDF URL</Label>
+                <Input
+                  id="edit-pdf"
+                  value={formData.pdf}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pdf: e.target.value })
+                  }
+                  className="w-full"
+                />
+              </div>
+
+              {/* Image Upload Section */}
               <div className="grid gap-2">
                 <Label htmlFor="edit-image">Current Image</Label>
-                <div className="relative aspect-video rounded-md overflow-hidden">
+                <div className="relative aspect-video rounded-md overflow-hidden border">
                   <img
-                    src={`${import.meta.env.VITE_API_URL}/images/${currentItem.image}`  || "/placeholder.svg"}
-                    alt={currentItem.title}
-                    className="object-cover"
+                    src={formData.imagePreview || "/placeholder.svg"}
+                    alt={formData.title}
+                    className="object-cover w-full h-full"
                   />
                 </div>
-                <Button variant="outline" size="sm" className="mt-2">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Change Image
-                </Button>
+
+                {/* Upload Button with Hidden Input */}
+                <div className="relative mt-2">
+                  <input
+                    id="edit-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          image: file,
+                          imagePreview: URL.createObjectURL(file),
+                        }));
+                      }
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  <label htmlFor="edit-image-upload">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="w-full sm:w-auto"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Change Image
+                    </Button>
+                  </label>
+                </div>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                setCurrentItem(null);
+              }}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button onClick={() => setIsEditDialogOpen(false)}>Save Changes</Button>
+            <Button
+              onClick={handleUpdate}
+              disabled={isEditing}
+              className="w-full sm:w-auto"
+            >
+              {isEditing ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this special day. This action cannot be undone.
+              This will permanently delete this special day. This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className={"cursor-pointer"}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
             >
-              Delete
+              {isDelete ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

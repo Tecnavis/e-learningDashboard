@@ -1,9 +1,24 @@
-
 import { useEffect, useState } from "react"
-import { BookOpen, Calendar, ChevronUp, ImageIcon, TrendingUp, User } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  BookOpen,
+  Calendar,
+  ImageIcon,
+  TrendingUp,
+  User
+} from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { useGetAllUserQuery } from "@/app/service/userData"
+import { useGetAllSyllbusQuery } from "@/app/service/syllbusData"
+import { useGetAllSpecialDaysQuery } from "@/app/service/specialDayData"
+import { useGetAllBannerQuery } from "@/app/service/bannderData"
 
 // Animation utility
 const animateValue = (start, end, duration, setter) => {
@@ -26,16 +41,42 @@ export default function DashboardPage() {
   const [specialDaysCount, setSpecialDaysCount] = useState(0)
   const [progress, setProgress] = useState(0)
 
-  useEffect(() => {
-    // Animate stats on load
-    animateValue(0, 1250, 2000, setUsersCount)
-    animateValue(0, 12, 2000, setCarouselCount)
-    animateValue(0, 48, 2000, setSyllabusCount)
-    animateValue(0, 8, 2000, setSpecialDaysCount)
+  const {
+    data: usersData,
+    isLoading: usersLoading
+  } = useGetAllUserQuery()
 
-    // Animate progress bars
-    setTimeout(() => setProgress(75), 500)
-  }, [])
+  const {
+    data: syllabusData,
+    isLoading: syllabusLoading
+  } = useGetAllSyllbusQuery()
+
+  const {
+    data: specialDaysData,
+    isLoading: specialLoading
+  } = useGetAllSpecialDaysQuery()
+
+  const {
+    data: bannerData,
+    isLoading: bannerLoading
+  } = useGetAllBannerQuery()
+
+  useEffect(() => {
+    if (usersData && Array.isArray(usersData)) {
+      animateValue(0, usersData.length, 1500, setUsersCount)
+    }
+    if (syllabusData && Array.isArray(syllabusData)) {
+      animateValue(0, syllabusData.length, 1500, setSyllabusCount)
+    }
+    if (specialDaysData && Array.isArray(specialDaysData)) {
+      animateValue(0, specialDaysData.length, 1500, setSpecialDaysCount)
+    }
+    if (bannerData && Array.isArray(bannerData)) {
+      animateValue(0, bannerData.length, 1500, setCarouselCount)
+    }
+
+    setTimeout(() => setProgress(100), 500)
+  }, [usersData, syllabusData, specialDaysData, bannerData])
 
   return (
     <div className="space-y-6">
@@ -45,80 +86,51 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usersCount.toLocaleString()}</div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <TrendingUp className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500">+12%</span>
-              <span className="ml-1">from last month</span>
-            </div>
-            <Progress value={75} className="h-1 mt-3" />
-          </CardContent>
-        </Card>
+        {/* Users Card */}
+        <StatCard
+          title="Total Users"
+          icon={<User className="h-4 w-4 text-muted-foreground" />}
+          value={usersCount}
+          change="+12%"
+          footer="from last month"
+          progress={75}
+        />
 
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Carousel Images</CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{carouselCount}</div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <ChevronUp className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500">+2</span>
-              <span className="ml-1">new this week</span>
-            </div>
-            <Progress value={60} className="h-1 mt-3" />
-          </CardContent>
-        </Card>
+        {/* Carousel Images Card */}
+        <StatCard
+          title="Carousel Images"
+          icon={<ImageIcon className="h-4 w-4 text-muted-foreground" />}
+          value={carouselCount}
+          change="+2"
+          footer="new this week"
+          progress={60}
+        />
 
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Syllabus Items</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{syllabusCount}</div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <TrendingUp className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500">+8</span>
-              <span className="ml-1">from last week</span>
-            </div>
-            <Progress value={85} className="h-1 mt-3" />
-          </CardContent>
-        </Card>
+        {/* Syllabus Card */}
+        <StatCard
+          title="Syllabus Items"
+          icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
+          value={syllabusCount}
+          change="+8"
+          footer="from last week"
+          progress={85}
+        />
 
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Special Days</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{specialDaysCount}</div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <ChevronUp className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500">+1</span>
-              <span className="ml-1">new this month</span>
-            </div>
-            <Progress value={40} className="h-1 mt-3" />
-          </CardContent>
-        </Card>
+        {/* Special Days Card */}
+        <StatCard
+          title="Special Days"
+          icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+          value={specialDaysCount}
+          change="+1"
+          footer="new this month"
+          progress={40}
+        />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
-
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            {/* Weekly Activity Chart */}
             <Card className="col-span-4">
               <CardHeader>
                 <CardTitle>Weekly Activity</CardTitle>
@@ -133,7 +145,7 @@ export default function DashboardPage() {
                         style={{
                           height: `${height}%`,
                           opacity: progress ? 1 : 0,
-                          transform: progress ? "translateY(0)" : "translateY(20px)",
+                          transform: progress ? "translateY(0)" : "translateY(20px)"
                         }}
                       />
                       <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
@@ -145,6 +157,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
+            {/* Recent Activities */}
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Recent Activities</CardTitle>
@@ -157,7 +170,7 @@ export default function DashboardPage() {
                     { action: "Carousel image updated", time: "1 hour ago", type: "carousel" },
                     { action: "New syllabus added", time: "3 hours ago", type: "syllabus" },
                     { action: "Special day created", time: "Yesterday", type: "special" },
-                    { action: "User profile updated", time: "2 days ago", type: "user" },
+                    { action: "User profile updated", time: "2 days ago", type: "user" }
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <div
@@ -165,10 +178,10 @@ export default function DashboardPage() {
                           item.type === "user"
                             ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
                             : item.type === "carousel"
-                              ? "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300"
-                              : item.type === "syllabus"
-                                ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300"
-                                : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300"
+                            ? "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300"
+                            : item.type === "syllabus"
+                            ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300"
+                            : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300"
                         }`}
                       >
                         {item.type === "user" ? (
@@ -192,35 +205,28 @@ export default function DashboardPage() {
             </Card>
           </div>
         </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics</CardTitle>
-              <CardDescription>Detailed analytics will be displayed here</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center border rounded-md">
-                <p className="text-muted-foreground">Analytics dashboard coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reports" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Reports</CardTitle>
-              <CardDescription>Generate and view reports</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center border rounded-md">
-                <p className="text-muted-foreground">Reports dashboard coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+// Reusable StatCard component
+function StatCard({ title, icon, value, change, footer, progress }) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+        <div className="flex items-center text-xs text-muted-foreground mt-1">
+          <TrendingUp className="mr-1 h-3 w-3 text-emerald-500" />
+          <span className="text-emerald-500">{change}</span>
+          <span className="ml-1">{footer}</span>
+        </div>
+        <Progress value={progress} className="h-1 mt-3" />
+      </CardContent>
+    </Card>
   )
 }
