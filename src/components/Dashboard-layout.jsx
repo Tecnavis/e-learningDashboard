@@ -24,6 +24,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 
 
 function NavItem({ href, icon, title, isActive, isMobile = false, onClick }) {
+
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
@@ -57,7 +58,8 @@ export default function DashboardLayout({ children }) {
 const location = useLocation();
 const pathname = location.pathname;
 
-  const router = useNavigate()
+const admin = JSON.parse(localStorage.getItem("admin"));
+
   const { theme, setTheme } = useTheme()
   const [isMounted, setIsMounted] = useState(false)
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
@@ -90,7 +92,7 @@ const pathname = location.pathname;
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
               <BookOpen className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="hidden text-lg font-bold xl:inline-flex">E-Learning</span>
+            <span className="hidden text-lg font-bold xl:inline-flex">Cognix Learn</span>
           </NavLink>
         </div>
 
@@ -228,8 +230,8 @@ const pathname = location.pathname;
               <DropdownMenuContent align="end">
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-0.5 leading-none">
-                    <p className="font-medium text-sm">Admin User</p>
-                    <p className="text-xs text-muted-foreground">admin@example.com</p>
+                    <p className="font-medium text-sm">{admin?.userDetails?.name}</p>
+                    <p className="text-xs text-muted-foreground">{admin?.userDetails?.email}</p>
                   </div>
                 </div>
                 <DropdownMenuItem asChild>
