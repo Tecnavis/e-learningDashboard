@@ -67,7 +67,6 @@ import { useNavigate } from "react-router-dom";
 
 // Mock syllabus data
 
-
 export default function SyllabusPage({ setSelectedCategories }) {
   // const [syllabus, setSyllabus] = useState(syllabusData);
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,8 +81,8 @@ export default function SyllabusPage({ setSelectedCategories }) {
 
   const { data, isError, isLoading, refetch } = useGetAllSyllbusQuery();
   const [addNewSyllbus, { isLoading: isPosting }] = useAddNewSyllbusMutation();
-  const [deleteSyllbus, { isLoading: isDelete }] =  useDeleteSyllbusMutation();
-   const [updateSyllbus, { isLoading: isEditing }] =  useUpdateSyllbusMutation();
+  const [deleteSyllbus, { isLoading: isDelete }] = useDeleteSyllbusMutation();
+  const [updateSyllbus, { isLoading: isEditing }] = useUpdateSyllbusMutation();
 
   const [syllabusTitle, setSyllabusTitle] = useState("");
   const [classNo, setClassNo] = useState("");
@@ -95,7 +94,6 @@ export default function SyllabusPage({ setSelectedCategories }) {
   const [pdf, setPdf] = useState("");
   const [video, setVideo] = useState("");
   const [formData, setFormData] = useState({ title: "" });
-
 
   // Handle file input change
   const handleImageChange = (event) => {
@@ -169,7 +167,6 @@ export default function SyllabusPage({ setSelectedCategories }) {
   const filteredSyllabus = data?.filter((item) =>
     (item?.title || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredSyllabus?.length / itemsPerPage);
@@ -179,56 +176,53 @@ export default function SyllabusPage({ setSelectedCategories }) {
     startIndex + itemsPerPage
   );
 
+  // edit special day
 
+  const handleEdit = (item) => {
+    setCurrentItem(item);
+    setFormData({
+      title: item.title || "",
+    });
+    setIsEditDialogOpen(true);
+  };
 
-    // edit special day
+  const handleUpdate = async () => {
+    try {
+      await updateSyllbus({
+        id: currentItem._id,
+        updateSyllbus: { title: formData.title },
+      }).unwrap();
 
-    const handleEdit = (item) => {
-      setCurrentItem(item);
-      setFormData({
-        title: item.title || "",
-      });
-      setIsEditDialogOpen(true);
-    };
-  
-    const handleUpdate = async () => {
-      try {
-        await updateSyllbus({
-          id: currentItem._id,
-          updateSyllbus: { title: formData.title },
-        }).unwrap();
-  
-        setIsEditDialogOpen(false);
+      setIsEditDialogOpen(false);
+      refetch();
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
+  };
+
+  // end edit special day
+
+  //  delete special day
+
+  const handleDelete = (id) => {
+    setCurrentItem(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async (e) => {
+    e.preventDefault();
+    try {
+      const { status } = await deleteSyllbus(currentItem).unwrap();
+      if (status === 200) {
+        setIsDeleteDialogOpen(false);
         refetch();
-      } catch (err) {
-        console.error("Update failed:", err);
       }
-    };
-  
-    // end edit special day
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+    }
+  };
 
-
-    //  delete special day
-
-    const handleDelete = (id) => {
-      setCurrentItem(id);
-      setIsDeleteDialogOpen(true);
-    };
-  
-    const confirmDelete = async (e) => {
-      e.preventDefault();
-      try {
-        const { status } = await deleteSyllbus(currentItem).unwrap();
-        if (status === 200) {
-          setIsDeleteDialogOpen(false);
-          refetch();
-        }
-      } catch (error) {
-        console.error("Failed to delete image:", error);
-      }
-    };
-  
-    // end delete
+  // end delete
 
   return (
     <div className="space-y-6">
@@ -534,23 +528,24 @@ export default function SyllabusPage({ setSelectedCategories }) {
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end"  onClick={() => handleEdit(item)}  >
-                        <DropdownMenuItem >
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleEdit(item)}
+                          className={"cursor-pointer"}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(item?._id)}  
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                          onClick={() => handleDelete(item?._id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-
-
                   </TableCell>
                 </TableRow>
               ))
@@ -606,7 +601,9 @@ export default function SyllabusPage({ setSelectedCategories }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Syllabus Title</DialogTitle>
-            <DialogDescription>Update only the title of the syllabus.</DialogDescription>
+            <DialogDescription>
+              Update only the title of the syllabus.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -615,17 +612,22 @@ export default function SyllabusPage({ setSelectedCategories }) {
               <Input
                 id="edit-title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleUpdate}>
-            {isEditing ? "Saving..." : "Save Changes"}
+              {isEditing ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -650,7 +652,7 @@ export default function SyllabusPage({ setSelectedCategories }) {
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-             {isDelete ? "Deleting..." : "Delete"}
+              {isDelete ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
