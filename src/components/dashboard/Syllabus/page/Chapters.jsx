@@ -7,7 +7,7 @@ export default function ChaptersPage() {
 
    const {id, no, chapterId  } = useParams();
   
-     const { data, isLoading, isError } = useGetASyllbusByIdQuery(id)
+     const { data, isLoading, isError, refetch } = useGetASyllbusByIdQuery(id)
     
       if (isLoading) return <div className="p-4">Loading...</div>
       if (isError || !data || data.length === 0) return <div className="p-4">No subject found.</div>
@@ -19,7 +19,7 @@ export default function ChaptersPage() {
   
   return (
     <>
-    <Chapters  isLoading = { isLoading }  chapters = {chapter?.[0].chapters}   id = {id} no = {no} chapterId = {chapterId} />
+    <Chapters  isLoading = { isLoading }  chapters = {chapter?.[0].chapters}   id = {id} no = {no} chapterId = {chapterId}  refetch = {refetch} />
     </>
   )
 }

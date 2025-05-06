@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Search, SlidersHorizontal } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -152,6 +152,7 @@ export default function UsersPage() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Standard</TableHead>
               <TableHead>District</TableHead>
               {/* <TableHead className="text-right">Actions</TableHead> */}
@@ -182,6 +183,9 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>
                       {user?.email}
+                  </TableCell>
+                  <TableCell>
+                      {user?.phone}
                   </TableCell>
                   <TableCell>
                     <Badge variant={"success" }>{user?.standard}</Badge>

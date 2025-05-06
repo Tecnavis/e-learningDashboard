@@ -47,6 +47,55 @@ export const syllabusApi = createApi({
       }),
     }),
 
+    //  add a syllabus class subject
+
+    addSyllbusClassSubjects: builder.mutation({
+      query: ({ id, no, addSyllbusClassSubjects }) => ({
+        url: `/syllabus/add-class/${id}/subjects/${no}`,
+        method: "PUT",
+        body: addSyllbusClassSubjects,
+      }),
+    }),
+
+    //  edit a syllabus class subject
+
+    editSyllbusClassSubjects: builder.mutation({
+      query: ({ id, no, subjectId, editSyllbusClassSubjects }) => ({
+        url: `/syllabus/add-class/${id}/class/${no}/subjects/${subjectId}`,
+        method: "PUT",
+        body: editSyllbusClassSubjects,
+      }),
+    }),
+
+    //  add a syllabus class subject chapter
+
+    addSyllbusClassSubjectsChapters: builder.mutation({
+      query: ({ id, no, subjectId, addSyllbusClassSubjectsChapters }) => ({
+        url: `/syllabus/add-class/${id}/subjects/${no}/chapters/${subjectId}`,
+        method: "PUT",
+        body: addSyllbusClassSubjectsChapters,
+      }),
+    }),
+
+    //  edit a syllabus class subject chapter
+
+    editSyllbusClassSubjectsChapters: builder.mutation({
+      query: ({
+        id,
+        no,
+        subjectId,
+        chapterId,
+        editSyllbusClassSubjectsChapters,
+      }) => ({
+        url: `/syllabus/add-class/${id}/class/${no}/subjects/${subjectId}/chapters/${chapterId}`,
+        method: "PUT",
+        body: editSyllbusClassSubjectsChapters,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+
     // add a syllabus rating
 
     addSyllbusRating: builder.mutation({
@@ -58,16 +107,32 @@ export const syllabusApi = createApi({
       }),
     }),
 
-        // delete a syllabus  class
-
+    // delete a syllabus  class
 
     deleteSyllbusAClass: builder.mutation({
-      query: ({id, no }) => ({
+      query: ({ id, no }) => ({
         url: `/syllabus/${id}/class/${no}`,
         method: "DELETE",
       }),
     }),
-  
+
+    //  delete a syllabus class subject
+
+    deleteSyllbusAClassSubjects: builder.mutation({
+      query: ({ id, no, subjectId }) => ({
+        url: `/syllabus/${id}/class/${no}/subjects/${subjectId}`,
+        method: "DELETE",
+      }),
+    }),
+
+    //  delete a syllabus class subject chapter
+
+    deleteSyllbusAClassSubjectsChapters: builder.mutation({
+      query: ({ id, no, subjectId, chapterId }) => ({
+        url: `/syllabus/${id}/class/${no}/subjects/${subjectId}/chapters/${chapterId}`,
+        method: "DELETE",
+      }),
+    }),
 
     // Delete a syllabus
 
@@ -78,7 +143,6 @@ export const syllabusApi = createApi({
       }),
     }),
   }),
-
 });
 
 export const {
@@ -89,5 +153,11 @@ export const {
   useDeleteSyllbusMutation,
   useAddSyllbusClassMutation,
   useAddSyllbusRatingMutation,
-  useDeleteSyllbusAClassMutation
+  useDeleteSyllbusAClassMutation,
+  useAddSyllbusClassSubjectsMutation,
+  useEditSyllbusClassSubjectsMutation,
+  useDeleteSyllbusAClassSubjectsMutation,
+  useAddSyllbusClassSubjectsChaptersMutation,
+  useEditSyllbusClassSubjectsChaptersMutation,
+  useDeleteSyllbusAClassSubjectsChaptersMutation,
 } = syllabusApi;
