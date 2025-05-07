@@ -6,8 +6,13 @@ import path from 'path'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: '0.0.0.0', 
-    port: 7868
+    host: '0.0.0.0',
+    port: 7868,
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 7868,
+    allowedHosts: ['e-learning-dashboard.onrender.com'], 
   },
   resolve: {
     alias: {
