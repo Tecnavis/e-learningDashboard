@@ -11,6 +11,12 @@ export const userApi = createApi({
       query: () => "/users",
     }),
 
+     // weekly-active-users
+    
+     getWeeklyActiveUser: builder.query({
+      query: () => "/weekly-active-users",
+    }),
+
     // Post user login
 
     loginUser: builder.mutation({
@@ -74,5 +80,6 @@ export const {
     useAddNewUserMutation, 
     useUpdateUserMutation,
     useDeleteUserMutation,
+    useGetWeeklyActiveUserQuery,
   } =  userApi; 
   

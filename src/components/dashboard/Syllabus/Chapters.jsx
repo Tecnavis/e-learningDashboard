@@ -11,6 +11,9 @@ import {
   MoreHorizontal,
   Trash2,
   Edit,
+  ArrowDown,
+  ArrowUp,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -48,18 +51,27 @@ export default function Chapters({
   const [searchQuery, setSearchQuery] = useState("");
   const [chapter, setChapter] = useState("");
   const [description, setDescription] = useState("");
-  const [pdf, setPdf] = useState("");
+  // const [pdf, setPdf] = useState("");
+  const [pdfs, setPdfs] = useState([""]);
   const [video, setVideo] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
 
+  // const [formData, setFormData] = useState({
+  //   title: "",
+  //   description: "",
+  //   document: {
+  //     pdf: "",
+  //     video: "",
+  //   },
+  // });
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     document: {
-      pdf: "",
+      pdf: [""], // Make it an array
       video: "",
     },
   });
@@ -80,6 +92,21 @@ export default function Chapters({
     );
   });
 
+  const handlePdfChange = (index, value) => {
+    const newPdfs = [...pdfs];
+    newPdfs[index] = value;
+    setPdfs(newPdfs);
+  };
+
+  const addPdfField = () => {
+    setPdfs([...pdfs, ""]);
+  };
+
+  const removePdfField = (index) => {
+    const newPdfs = pdfs.filter((_, i) => i !== index);
+    setPdfs(newPdfs);
+  };
+
   const handleAddSyllabus = async (e) => {
     e?.preventDefault?.();
     try {
@@ -89,7 +116,7 @@ export default function Chapters({
             title: chapter,
             description,
             document: {
-              pdf,
+              pdf: pdfs.filter(Boolean),
               video,
             },
           },
@@ -105,7 +132,7 @@ export default function Chapters({
       if (response?.status === 200) {
         setChapter("");
         setDescription("");
-        setPdf("");
+        setPdfs([""]);
         setVideo("");
         setIsAddDialogOpen(false);
         refetch();
@@ -133,29 +160,54 @@ export default function Chapters({
 
   const handleEdit = (item) => {
     setCurrentItem(item);
+    // setFormData({
+    //   title: item.title || "",
+    //   description: item.description || "",
+    //   document: {
+    //     pdf: item.document?.pdf || "",
+    //     video: item.document?.video || "",
+    //   },
+    // });
+
     setFormData({
       title: item.title || "",
       description: item.description || "",
       document: {
-        pdf: item.document?.pdf || "",
+        pdf: Array.isArray(item.document?.pdf)
+          ? item.document.pdf
+          : [item.document?.pdf || ""],
         video: item.document?.video || "",
       },
     });
+
     setIsEditDialogOpen(true);
   };
 
   const handleUpdate = async () => {
     try {
+      // const updatedData = {
+      //   chapters: [
+      //     {
+      //       title: formData.title,
+      //       description: formData.description,
+      //       document: formData.document,
+      //     },
+      //   ],
+      // };
+
       const updatedData = {
         chapters: [
           {
             title: formData.title,
             description: formData.description,
-            document: formData.document,
+            document: {
+              pdf: formData.document.pdf,
+              video: formData.document.video,
+            },
           },
         ],
       };
-  
+
       await editSyllbusClassSubjectsChapters({
         id,
         no,
@@ -163,14 +215,21 @@ export default function Chapters({
         chapterId: currentItem._id,
         editSyllbusClassSubjectsChapters: updatedData,
       }).unwrap();
-  
+
       setIsEditDialogOpen(false);
+      setFormData({
+        title: "",
+        description: "",
+        document: {
+          pdf: [""], // Make it an array
+          video: "",
+        },
+      });
       refetch();
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
-  
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -231,14 +290,45 @@ export default function Chapters({
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="pdf">PDF Link</Label>
                   <Input
                     id="pdf"
                     value={pdf}
                     onChange={(e) => setPdf(e.target.value)}
                   />
+                </div> */}
+                <div className="grid gap-2">
+                  <Label>PDF URLs</Label>
+                  {pdfs.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        value={link}
+                        onChange={(e) => handlePdfChange(index, e.target.value)}
+                        placeholder={`Enter PDF link ${index + 1}`}
+                      />
+                      {pdfs.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePdfField(index)}
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addPdfField}
+                  >
+                    + Add PDF
+                  </Button>
                 </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="video">Video Link</Label>
                   <Input
@@ -347,19 +437,151 @@ export default function Chapters({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-pdf">PDF Link</Label>
-                  <Input
-                    id="edit-pdf"
-                    className="w-full"
-                    value={formData.document.pdf}
-                    onChange={(e) =>
+                {/* <div>
+                  <Label>PDF Links</Label>
+                  {formData.document.pdf.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={link}
+                        onChange={(e) => {
+                          const updatedPdf = [...formData.document.pdf];
+                          updatedPdf[index] = e.target.value;
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                        className="w-full"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          const updatedPdf = formData.document.pdf.filter(
+                            (_, i) => i !== index
+                          );
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
                       setFormData({
                         ...formData,
-                        document: { ...formData.document, pdf: e.target.value },
+                        document: {
+                          ...formData.document,
+                          pdf: [...formData.document.pdf, ""],
+                        },
                       })
                     }
-                  />
+                  >
+                    + Add PDF Link
+                  </Button>
+                </div> */}
+                <div>
+                  <Label>PDF Links</Label>
+                  {formData.document.pdf.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={link}
+                        onChange={(e) => {
+                          const updatedPdf = [...formData.document.pdf];
+                          updatedPdf[index] = e.target.value;
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                        className="w-full"
+                      />
+
+                      {/* Move Up */}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          if (index === 0) return;
+                          const updatedPdf = [...formData.document.pdf];
+                          [updatedPdf[index - 1], updatedPdf[index]] = [
+                            updatedPdf[index],
+                            updatedPdf[index - 1],
+                          ];
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+
+                      {/* Move Down */}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          if (index === formData.document.pdf.length - 1)
+                            return;
+                          const updatedPdf = [...formData.document.pdf];
+                          [updatedPdf[index + 1], updatedPdf[index]] = [
+                            updatedPdf[index],
+                            updatedPdf[index + 1],
+                          ];
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                        disabled={index === formData.document.pdf.length - 1}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+
+                      {/* Delete PDF */}
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          const updatedPdf = formData.document.pdf.filter(
+                            (_, i) => i !== index
+                          );
+                          setFormData({
+                            ...formData,
+                            document: { ...formData.document, pdf: updatedPdf },
+                          });
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        document: {
+                          ...formData.document,
+                          pdf: [...formData.document.pdf, ""],
+                        },
+                      })
+                    }
+                  >
+                    + Add PDF Link
+                  </Button>
                 </div>
                 <div>
                   <Label htmlFor="edit-video">Video Link</Label>
@@ -395,8 +617,6 @@ export default function Chapters({
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-
       </div>
 
       {/* Chapter List */}

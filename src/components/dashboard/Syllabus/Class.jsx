@@ -135,12 +135,31 @@ export default function ClassPage({
   const [image, setImage] = useState(null);
   const [chapter, setChapter] = useState("");
   const [description, setDescription] = useState("");
-  const [pdf, setPdf] = useState("");
+  // const [pdf, setPdf] = useState("");
+    
+  const [pdfs, setPdfs] = useState([""]);
+
   const [video, setVideo] = useState("");
 
   const handleImageChange = (event) => {
     setImage(event.target.files[0]);
   };
+
+  const handlePdfChange = (index, value) => {
+    const newPdfs = [...pdfs];
+    newPdfs[index] = value;
+    setPdfs(newPdfs);
+  };
+  
+  const addPdfField = () => {
+    setPdfs([...pdfs, ""]);
+  };
+  
+  const removePdfField = (index) => {
+    const newPdfs = pdfs.filter((_, i) => i !== index);
+    setPdfs(newPdfs);
+  };
+  
 
   const handleAddSyllabus = async (e) => {
     e?.preventDefault?.();
@@ -159,7 +178,7 @@ export default function ClassPage({
                 title: chapter,
                 description,
                 document: {
-                  pdf,
+                  pdf: pdfs.filter(Boolean), 
                   video,
                 },
               },
@@ -190,7 +209,7 @@ export default function ClassPage({
         setImage(null);
         setChapter("");
         setDescription("");
-        setPdf("");
+        setPdfs([""]);
         setVideo("");
         setIsAddDialogOpen(false);
         refetch();
@@ -308,14 +327,42 @@ export default function ClassPage({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+                  {/* <div className="grid gap-2">
                     <Label htmlFor="pdf">PDF Link</Label>
                     <Input
                       id="pdf"
                       value={pdf}
                       onChange={(e) => setPdf(e.target.value)}
                     />
-                  </div>
+                  </div> */}
+
+                  <div className="grid gap-2">
+  <Label>PDF URLs</Label>
+  {pdfs.map((link, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <Input
+        value={link}
+        onChange={(e) => handlePdfChange(index, e.target.value)}
+        placeholder={`Enter PDF link ${index + 1}`}
+      />
+      {pdfs.length > 1 && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => removePdfField(index)}
+        >
+          ✕
+        </Button>
+      )}
+    </div>
+  ))}
+  <Button type="button" variant="outline" size="sm" onClick={addPdfField}>
+    + Add PDF
+  </Button>
+</div>
+
+
                   <div className="grid gap-2">
                     <Label htmlFor="video">Video Link</Label>
                     <Input

@@ -1,12 +1,16 @@
-import { useAddSyllbusClassSubjectsMutation, useEditSyllbusClassSubjectsMutation, useGetASyllbusByIdQuery } from '@/app/service/syllbusData';
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, Plus, Search } from 'lucide-react';
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { SubjectPage } from '../Subjects';
-import { Button } from '@/components/ui/button';
-import { Label } from '@radix-ui/react-dropdown-menu';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  useAddSyllbusClassSubjectsMutation,
+  useEditSyllbusClassSubjectsMutation,
+  useGetASyllbusByIdQuery,
+} from "@/app/service/syllbusData";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Plus, Search } from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { SubjectPage } from "../Subjects";
+import { Button } from "@/components/ui/button";
+import { Label } from "@radix-ui/react-dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +28,8 @@ export default function Subjects() {
   const { data, isLoading, isError, refetch } = useGetASyllbusByIdQuery(id);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [addSyllbusClassSubjects, { isLoading: isPosting }] = useAddSyllbusClassSubjectsMutation();
+  const [addSyllbusClassSubjects, { isLoading: isPosting }] =
+    useAddSyllbusClassSubjectsMutation();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [subjects, setSubjects] = useState("");
@@ -32,32 +37,51 @@ export default function Subjects() {
   const [image, setImage] = useState(null);
   const [chapter, setChapter] = useState("");
   const [description, setDescription] = useState("");
-  const [pdf, setPdf] = useState("");
+  // const [pdf, setPdf] = useState("");
+  const [pdfs, setPdfs] = useState([""]); 
   const [video, setVideo] = useState("");
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editSyllbusClassSubjects, { isLoading: isEditing }] =
+    useEditSyllbusClassSubjectsMutation();
 
-   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [editSyllbusClassSubjects, { isLoading: isEditing }] =
-      useEditSyllbusClassSubjectsMutation();
-  
-    const [currentItem, setCurrentItem] = useState(null);
-    const [formData, setFormData] = useState({
-      title: "",
-      author: "",
-      image: null,
-    });
+  const [currentItem, setCurrentItem] = useState(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    author: "",
+    image: null,
+  });
 
   const handleImageChange = (event) => {
     setImage(event.target.files[0]);
   };
 
+  const handlePdfChange = (index, value) => {
+    const newPdfs = [...pdfs];
+    newPdfs[index] = value;
+    setPdfs(newPdfs);
+  };
+  
+  const addPdfField = () => {
+    setPdfs([...pdfs, ""]);
+  };
+  
+  const removePdfField = (index) => {
+    const newPdfs = pdfs.filter((_, i) => i !== index);
+    setPdfs(newPdfs);
+  };
+  
+
   // Ensure subjectData is always defined
   const classData = data?.classes?.find((cla) => cla.no == no);
-  const filteredSubjects = classData?.subjects?.filter((subject) => {
-    const q = searchQuery.toLowerCase();
-    return subject.title.toLowerCase().includes(q) || subject.author.toLowerCase().includes(q);
-  }) || [];
-  
+  const filteredSubjects =
+    classData?.subjects?.filter((subject) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        subject.title.toLowerCase().includes(q) ||
+        subject.author.toLowerCase().includes(q)
+      );
+    }) || [];
 
   const handleAddSyllabus = async (e) => {
     e?.preventDefault?.();
@@ -75,7 +99,7 @@ export default function Subjects() {
                 title: chapter,
                 description,
                 document: {
-                  pdf,
+                  pdf: pdfs.filter(Boolean),
                   video,
                 },
               },
@@ -102,7 +126,7 @@ export default function Subjects() {
         setImage(null);
         setChapter("");
         setDescription("");
-        setPdf("");
+        setPdfs([""]);
         setVideo("");
         setIsAddDialogOpen(false);
         refetch();
@@ -120,58 +144,57 @@ export default function Subjects() {
     return <div className="p-4">No subject found.</div>;
   }
 
-
-  
-
   const handleEdit = (item) => {
-      setCurrentItem(item);
-    
-      setFormData({
-        title: item.title || "",
-        author: item.author || "",
-        image: null,
-      });
-      setIsEditDialogOpen(true);
-    };
-  
-    const handleUpdate = async () => {
-      try {
-        const form = new FormData();
-  
-        const updatedData = {
-          subjects: [
-            {
-              title: formData.title,
-              author: formData.author,
-            },
-          ],
-        };
-  
-        form.append("addSyllbusClass", JSON.stringify(updatedData));
-  
-        if (formData.image) {
-          form.append("image", formData.image);
-        }
-  
-        await editSyllbusClassSubjects({
-          id,
-          no,
-          subjectId: currentItem._id,
-          editSyllbusClassSubjects: form,
-        }).unwrap();
-  
-        setIsEditDialogOpen(false);
-        refetch();
-      } catch (err) {
-        console.error("Update failed:", err);
-      }
-    };
+    setCurrentItem(item);
 
+    setFormData({
+      title: item.title || "",
+      author: item.author || "",
+      image: null,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const form = new FormData();
+
+      const updatedData = {
+        subjects: [
+          {
+            title: formData.title,
+            author: formData.author,
+          },
+        ],
+      };
+
+      form.append("addSyllbusClass", JSON.stringify(updatedData));
+
+      if (formData.image) {
+        form.append("image", formData.image);
+      }
+
+      await editSyllbusClassSubjects({
+        id,
+        no,
+        subjectId: currentItem._id,
+        editSyllbusClassSubjects: form,
+      }).unwrap();
+
+      setIsEditDialogOpen(false);
+      refetch();
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
+  };
 
   return (
     <section className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <ArrowLeft onClick={() => navigate(-1)} className="h-6 w-6 cursor-pointer" />
+        <ArrowLeft
+          onClick={() => navigate(-1)}
+          className="h-6 w-6 cursor-pointer"
+        />
         Subjects
       </h2>
 
@@ -187,171 +210,194 @@ export default function Subjects() {
           />
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add  Subjects
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Class</DialogTitle>
-                <DialogDescription>
-                  Fill in all required details to add a Subjects.
-                </DialogDescription>
-              </DialogHeader>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Subjects
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Subjects</DialogTitle>
+              <DialogDescription>
+                Fill in all required details to add a Subjects.
+              </DialogDescription>
+            </DialogHeader>
 
-              <form className="grid gap-4 py-4" onSubmit={handleAddSyllabus}>
-                <div className="grid  gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      value={subjects}
-                      onChange={(e) => setSubjects(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="author">Author</Label>
-                    <Input
-                      id="author"
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="image">Upload Image</Label>
-                    <Input
-                      id="image"
-                      type="file"
-                      onChange={handleImageChange}
-                    />
-                  </div>
-                </div>
-
+            <form className="grid gap-4 py-4" onSubmit={handleAddSyllabus}>
+              <div className="grid  gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="chapter">Chapter Title</Label>
+                  <Label htmlFor="subject">Subject</Label>
                   <Input
-                    id="chapter"
-                    value={chapter}
-                    onChange={(e) => setChapter(e.target.value)}
+                    id="subject"
+                    value={subjects}
+                    onChange={(e) => setSubjects(e.target.value)}
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                  <Label htmlFor="author">Author</Label>
+                  <Input
+                    id="author"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
                   />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="image">Upload Image</Label>
+                  <Input id="image" type="file" onChange={handleImageChange} />
+                </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+              <div className="grid gap-2">
+                <Label htmlFor="chapter">Chapter Title</Label>
+                <Input
+                  id="chapter"
+                  value={chapter}
+                  onChange={(e) => setChapter(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid gap-2">
                     <Label htmlFor="pdf">PDF Link</Label>
                     <Input
                       id="pdf"
                       value={pdf}
                       onChange={(e) => setPdf(e.target.value)}
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="video">Video Link</Label>
-                    <Input
-                      id="video"
-                      value={video}
-                      onChange={(e) => setVideo(e.target.value)}
-                    />
-                  </div>
+                  </div> */}
+
+                <div className="grid gap-2">
+                  <Label>PDF URLs</Label>
+                  {pdfs.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        value={link}
+                        onChange={(e) => handlePdfChange(index, e.target.value)}
+                        placeholder={`Enter PDF link ${index + 1}`}
+                      />
+                      {pdfs.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePdfField(index)}
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addPdfField}
+                  >
+                    + Add PDF
+                  </Button>
                 </div>
 
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {isPosting ? "Saving..." : "Save"}{" "}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                <div className="grid gap-2">
+                  <Label htmlFor="video">Video Link</Label>
+                  <Input
+                    id="video"
+                    value={video}
+                    onChange={(e) => setVideo(e.target.value)}
+                  />
+                </div>
+              </div>
 
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {isPosting ? "Saving..." : "Save"}{" "}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-           {/* Edit Dialog */}
-           <Dialog
-                open={isEditDialogOpen}
-                onOpenChange={setIsEditDialogOpen}
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Subject</DialogTitle>
+              <DialogDescription>
+                Update the title, author, or image of the subject.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-author">Author</Label>
+                <Input
+                  id="edit-author"
+                  value={formData.author}
+                  onChange={(e) =>
+                    setFormData({ ...formData, author: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-image">Image</Label>
+                <Input
+                  id="edit-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData({ ...formData, image: e.target.files[0] })
+                  }
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
               >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Edit Subject</DialogTitle>
-                    <DialogDescription>
-                      Update the title, author, or image of the subject.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="edit-title">Title</Label>
-                      <Input
-                        id="edit-title"
-                        value={formData.title}
-                        onChange={(e) =>
-                          setFormData({ ...formData, title: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="edit-author">Author</Label>
-                      <Input
-                        id="edit-author"
-                        value={formData.author}
-                        onChange={(e) =>
-                          setFormData({ ...formData, author: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="edit-image">Image</Label>
-                      <Input
-                        id="edit-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          setFormData({ ...formData, image: e.target.files[0] })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleUpdate}>
-                      {isEditing ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
+                Cancel
+              </Button>
+              <Button onClick={handleUpdate}>
+                {isEditing ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading
           ? Array.from({ length: 8 }).map((_, index) => (
-              <SubjectPage key={index} isLoading={true}/>
+              <SubjectPage key={index} isLoading={true} />
             ))
           : filteredSubjects.map((subject) => (
               <SubjectPage
@@ -360,8 +406,8 @@ export default function Subjects() {
                 id={id}
                 no={no}
                 isLoading={false}
-                refetch = {refetch} 
-                handleEdit = {handleEdit}
+                refetch={refetch}
+                handleEdit={handleEdit}
               />
             ))}
       </div>

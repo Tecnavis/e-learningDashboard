@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Download,
   Edit,
   Eye,
   MoreHorizontal,
@@ -38,15 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,7 +82,9 @@ export default function SyllabusPage({ setSelectedCategories }) {
   const [image, setImage] = useState(null);
   const [chapter, setChapter] = useState("");
   const [description, setDescription] = useState("");
-  const [pdf, setPdf] = useState("");
+  // const [pdf, setPdf] = useState("");
+  const [pdfs, setPdfs] = useState([""]); // instead of a single pdf string
+
   const [video, setVideo] = useState("");
   const [formData, setFormData] = useState({ title: "" });
 
@@ -100,6 +93,23 @@ export default function SyllabusPage({ setSelectedCategories }) {
     setImage(event.target.files[0]); // Set the file in state
   };
 
+
+  const handlePdfChange = (index, value) => {
+    const newPdfs = [...pdfs];
+    newPdfs[index] = value;
+    setPdfs(newPdfs);
+  };
+  
+  const addPdfField = () => {
+    setPdfs([...pdfs, ""]);
+  };
+  
+  const removePdfField = (index) => {
+    const newPdfs = pdfs.filter((_, i) => i !== index);
+    setPdfs(newPdfs);
+  };
+  
+
   const handleAddSyllabus = async (e) => {
     e?.preventDefault?.();
     try {
@@ -107,6 +117,32 @@ export default function SyllabusPage({ setSelectedCategories }) {
 
       // Append all fields to FormData
       formData.append("title", syllabusTitle);
+      // formData.append(
+      //   "classes",
+      //   JSON.stringify([
+      //     {
+      //       no: Number(classNo),
+      //       subjects: [
+      //         {
+      //           title: subject,
+      //           author,
+      //           chapters: [
+      //             {
+      //               title: chapter,
+      //               description,
+      //               document: {
+      //                 pdf,
+      //                 video,
+      //               },
+      //             },
+      //           ],
+      //         },
+      //       ],
+      //     },
+      //   ])
+      // );
+
+
       formData.append(
         "classes",
         JSON.stringify([
@@ -121,7 +157,7 @@ export default function SyllabusPage({ setSelectedCategories }) {
                     title: chapter,
                     description,
                     document: {
-                      pdf,
+                      pdf: pdfs.filter(Boolean), // only non-empty PDFs
                       video,
                     },
                   },
@@ -131,6 +167,7 @@ export default function SyllabusPage({ setSelectedCategories }) {
           },
         ])
       );
+      
 
       if (image) {
         formData.append("image", image);
@@ -138,6 +175,8 @@ export default function SyllabusPage({ setSelectedCategories }) {
 
       // Replace with actual API call to add syllabus
       const response = await addNewSyllbus(formData).unwrap();
+      console.log(response, "response");
+      
 
       if (response?.status === 201) {
         // Reset the form state after successful submission
@@ -148,7 +187,7 @@ export default function SyllabusPage({ setSelectedCategories }) {
         setImage(null);
         setChapter("");
         setDescription("");
-        setPdf("");
+        setPdfs([""]);
         setVideo("");
         setIsAddDialogOpen(false);
         refetch();
@@ -157,6 +196,8 @@ export default function SyllabusPage({ setSelectedCategories }) {
       console.error("Error while adding syllabus:", error);
     }
   };
+
+  
 
   if (isLoading) return <h1>Loading...</h1>;
   if (isError || !Array.isArray(data))
@@ -359,7 +400,7 @@ export default function SyllabusPage({ setSelectedCategories }) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+                  {/* <div className="grid gap-2">
                     <Label htmlFor="pdf">PDF URL</Label>
                     <Input
                       id="pdf"
@@ -367,7 +408,34 @@ export default function SyllabusPage({ setSelectedCategories }) {
                       onChange={(e) => setPdf(e.target.value)}
                       placeholder="Enter PDF link"
                     />
-                  </div>
+                  </div> */}
+
+                  <div className="grid gap-2">
+  <Label>PDF URLs</Label>
+  {pdfs.map((link, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <Input
+        value={link}
+        onChange={(e) => handlePdfChange(index, e.target.value)}
+        placeholder={`Enter PDF link ${index + 1}`}
+      />
+      {pdfs.length > 1 && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => removePdfField(index)}
+        >
+          ✕
+        </Button>
+      )}
+    </div>
+  ))}
+  <Button type="button" variant="outline" size="sm" onClick={addPdfField}>
+    + Add PDF
+  </Button>
+</div>
+
 
                   <div className="grid gap-2">
                     <Label htmlFor="video">Video URL</Label>

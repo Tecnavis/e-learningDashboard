@@ -1,88 +1,81 @@
-import { useEffect, useState } from "react"
-import {
-  BookOpen,
-  Calendar,
-  ImageIcon,
-  TrendingUp,
-  User
-} from "lucide-react"
+import { useEffect, useState } from "react";
+import { BookOpen, Calendar, ImageIcon, TrendingUp, User } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
-} from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { useGetAllUserQuery } from "@/app/service/userData"
-import { useGetAllSyllbusQuery } from "@/app/service/syllbusData"
-import { useGetAllSpecialDaysQuery } from "@/app/service/specialDayData"
-import { useGetAllBannerQuery } from "@/app/service/bannderData"
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  useGetAllUserQuery,
+  useGetWeeklyActiveUserQuery,
+} from "@/app/service/userData";
+import { useGetAllSyllbusQuery } from "@/app/service/syllbusData";
+import { useGetAllSpecialDaysQuery } from "@/app/service/specialDayData";
+import { useGetAllBannerQuery } from "@/app/service/bannderData";
+import { formatDistanceToNowStrict, parseISO } from "date-fns";
 
 // Animation utility
 const animateValue = (start, end, duration, setter) => {
-  let startTimestamp = null
+  let startTimestamp = null;
   const step = (timestamp) => {
-    if (!startTimestamp) startTimestamp = timestamp
-    const progress = Math.min((timestamp - startTimestamp) / duration, 1)
-    setter(Math.floor(progress * (end - start) + start))
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    setter(Math.floor(progress * (end - start) + start));
     if (progress < 1) {
-      window.requestAnimationFrame(step)
+      window.requestAnimationFrame(step);
     }
-  }
-  window.requestAnimationFrame(step)
-}
+  };
+  window.requestAnimationFrame(step);
+};
 
 export default function DashboardPage() {
-  const [usersCount, setUsersCount] = useState(0)
-  const [carouselCount, setCarouselCount] = useState(0)
-  const [syllabusCount, setSyllabusCount] = useState(0)
-  const [specialDaysCount, setSpecialDaysCount] = useState(0)
-  const [progress, setProgress] = useState(0)
+  const [usersCount, setUsersCount] = useState(0);
+  const [carouselCount, setCarouselCount] = useState(0);
+  const [syllabusCount, setSyllabusCount] = useState(0);
+  const [specialDaysCount, setSpecialDaysCount] = useState(0);
+  const [progress, setProgress] = useState(0);
 
-  const {
-    data: usersData,
-    isLoading: usersLoading
-  } = useGetAllUserQuery()
+  const { data: usersData, isLoading: usersLoading } = useGetAllUserQuery();
 
-  const {
-    data: syllabusData,
-    isLoading: syllabusLoading
-  } = useGetAllSyllbusQuery()
+  const { data: syllabusData, isLoading: syllabusLoading } =
+    useGetAllSyllbusQuery();
 
-  const {
-    data: specialDaysData,
-    isLoading: specialLoading
-  } = useGetAllSpecialDaysQuery()
+  const { data: specialDaysData, isLoading: specialLoading } =
+    useGetAllSpecialDaysQuery();
 
-  const {
-    data: bannerData,
-    isLoading: bannerLoading
-  } = useGetAllBannerQuery()
+  const { data: bannerData, isLoading: bannerLoading } = useGetAllBannerQuery();
+  const { data: weeklyActiveUser, isLoading: weeklyactiveLoading } =
+    useGetWeeklyActiveUserQuery();
+    
 
   useEffect(() => {
     if (usersData && Array.isArray(usersData)) {
-      animateValue(0, usersData.length, 1500, setUsersCount)
+      animateValue(0, usersData.length, 1500, setUsersCount);
     }
     if (syllabusData && Array.isArray(syllabusData)) {
-      animateValue(0, syllabusData.length, 1500, setSyllabusCount)
+      animateValue(0, syllabusData.length, 1500, setSyllabusCount);
     }
     if (specialDaysData && Array.isArray(specialDaysData)) {
-      animateValue(0, specialDaysData.length, 1500, setSpecialDaysCount)
+      animateValue(0, specialDaysData.length, 1500, setSpecialDaysCount);
     }
     if (bannerData && Array.isArray(bannerData)) {
-      animateValue(0, bannerData.length, 1500, setCarouselCount)
+      animateValue(0, bannerData.length, 1500, setCarouselCount);
     }
 
-    setTimeout(() => setProgress(100), 500)
-  }, [usersData, syllabusData, specialDaysData, bannerData])
+    setTimeout(() => setProgress(100), 500);
+  }, [usersData, syllabusData, specialDaysData, bannerData]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your e-learning admin dashboard</p>
+        <p className="text-muted-foreground">
+          Welcome to your e-learning admin dashboard
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -131,10 +124,12 @@ export default function DashboardPage() {
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             {/* Weekly Activity Chart */}
-            <Card className="col-span-4">
+            {/* <Card className="col-span-4">
               <CardHeader>
                 <CardTitle>Weekly Activity</CardTitle>
-                <CardDescription>User engagement over the past 7 days</CardDescription>
+                <CardDescription>
+                  User engagement over the past 7 days
+                </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-[200px] w-full bg-muted/20 rounded-md flex items-end justify-between p-6">
@@ -145,11 +140,43 @@ export default function DashboardPage() {
                         style={{
                           height: `${height}%`,
                           opacity: progress ? 1 : 0,
-                          transform: progress ? "translateY(0)" : "translateY(20px)"
+                          transform: progress
+                            ? "translateY(0)"
+                            : "translateY(20px)",
                         }}
                       />
                       <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card> */}
+
+            <Card className="col-span-4">
+              <CardHeader>
+                <CardTitle>Weekly Activity</CardTitle>
+                <CardDescription>
+                  User engagement over the past 7 days
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[200px] w-full bg-muted/20 rounded-md flex items-end justify-between p-6">
+                  {(weeklyActiveUser || []).map((item, i) => (
+                    <div key={i} className="relative h-full flex items-end">
+                      <div
+                        className="w-8 bg-primary rounded-t-sm transition-all duration-500"
+                        style={{
+                          height: `${item.count}%`, // dynamic height
+                          opacity: progress ? 1 : 0,
+                          transform: progress
+                            ? "translateY(0)"
+                            : "translateY(20px)",
+                        }}
+                      />
+                      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
+                        {item.day}
                       </span>
                     </div>
                   ))}
@@ -166,11 +193,51 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { action: "New user registered", time: "2 minutes ago", type: "user" },
-                    { action: "Carousel image updated", time: "1 hour ago", type: "carousel" },
-                    { action: "New syllabus added", time: "3 hours ago", type: "syllabus" },
-                    { action: "Special day created", time: "Yesterday", type: "special" },
-                    { action: "User profile updated", time: "2 days ago", type: "user" }
+                    {
+                      action: "New user registered",
+                      time: usersData?.[usersData.length - 1]
+                        ? formatDistanceToNowStrict(
+                            parseISO(usersData[usersData.length - 1].createdAt),
+                            { addSuffix: true }
+                          )
+                        : "No data",
+                      type: "user",
+                    },
+                    {
+                      action: "Carousel image updated",
+                      time: bannerData?.[0]
+                        ? formatDistanceToNowStrict(
+                            parseISO(bannerData[0].updatedAt),
+                            { addSuffix: true }
+                          )
+                        : "No data",
+                      type: "carousel",
+                    },
+                    {
+                      action: "New syllabus added",
+                      time: syllabusData?.[syllabusData.length - 1]
+                        ? formatDistanceToNowStrict(
+                            parseISO(
+                              syllabusData[syllabusData.length - 1].createdAt
+                            ),
+                            { addSuffix: true }
+                          )
+                        : "No data",
+                      type: "syllabus",
+                    },
+                    {
+                      action: "Special day created",
+                      time: specialDaysData?.[specialDaysData.length - 1]
+                        ? formatDistanceToNowStrict(
+                            parseISO(
+                              specialDaysData[specialDaysData.length - 1]
+                                .createdAt
+                            ),
+                            { addSuffix: true }
+                          )
+                        : "No data",
+                      type: "special",
+                    },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <div
@@ -195,8 +262,12 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">{item.action}</p>
-                        <p className="text-xs text-muted-foreground">{item.time}</p>
+                        <p className="text-sm font-medium leading-none">
+                          {item.action}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.time}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -207,7 +278,7 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
 
 // Reusable StatCard component
@@ -228,5 +299,5 @@ function StatCard({ title, icon, value, change, footer, progress }) {
         <Progress value={progress} className="h-1 mt-3" />
       </CardContent>
     </Card>
-  )
+  );
 }
