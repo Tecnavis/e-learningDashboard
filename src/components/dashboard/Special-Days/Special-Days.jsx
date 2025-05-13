@@ -141,7 +141,7 @@ export default function SpecialDaysPage() {
     setCurrentItem(day);
     setFormData({
       title: day.title,
-      date: new Date(day.date).toISOString().split("T")[0], 
+      date: new Date(day.date).toISOString().split("T")[0],
       pdf: day.pdf,
       image: null,
     });
@@ -241,7 +241,7 @@ export default function SpecialDaysPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full" 
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -253,7 +253,7 @@ export default function SpecialDaysPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
                   }
-                  className="w-full" 
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -284,7 +284,7 @@ export default function SpecialDaysPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, image: e.target.files[0] })
                       }
-                      className="w-full" 
+                      className="w-full"
                     />
                   </Button>
                 </div>
@@ -306,42 +306,46 @@ export default function SpecialDaysPage() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
         {paginatedDays.map((day) => (
-          <Card key={day._id} className="overflow-hidden">
-            <div className="relative aspect-video">
+          <div
+            key={day._id}
+            className="overflow-hidden border rounded-md"
+          >
+            {/* Image */}
+            <div className="relative w-full h-28">
               <img
                 src={
-                  `${import.meta.env.VITE_API_URL}/images/${day.image}` ||
-                  "/placeholder.svg"
+                  day.image
+                    ? `${import.meta.env.VITE_API_URL}/images/${day.image}`
+                    : "/placeholder.svg"
                 }
                 alt={day.title}
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-1 right-1 z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="bg-background/80 backdrop-blur-sm cursor-pointer"
+                      className="cursor-pointer p-1"
                     >
                       <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => handleEdit(day)}
-                      className={"cursor-pointer"}
+                      className="cursor-pointer"
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      onClick={() => handleDelete(day?._id)}
+                      className="text-destructive cursor-pointer"
+                      onClick={() => handleDelete(day._id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -350,20 +354,21 @@ export default function SpecialDaysPage() {
                 </DropdownMenu>
               </div>
             </div>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
+
+            {/* Content */}
+            <div className="p-2 space-y-1">
+              <div className="flex items-center text-xs text-muted-foreground gap-1">
                 <Calendar className="h-3 w-3" />
-                {day?.date &&
+                {day.date &&
                   new Date(day.date).toLocaleDateString("en-US", {
                     year: "numeric",
-                    month: "long",
+                    month: "short",
                     day: "numeric",
                   })}
               </div>
-              <h3 className="font-semibold truncate">{day.title}</h3>
-              {/* <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{day.description}</p> */}
-            </CardContent>
-          </Card>
+              <h3 className="text-xs font-medium truncate">{day.title}</h3>
+            </div>
+          </div>
         ))}
       </div>
 

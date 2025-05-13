@@ -65,7 +65,8 @@ export default function CarouselPage() {
   const [addNewBanner, { isLoading: isPosting }] = useAddNewBannerMutation();
   const [updateBanner, { isLoading: isEditing }] = useUpdateBannerMutation();
   const [deleteABanner, { isLoading: isDeleting }] = useDeleteABannerMutation();
-  const [deleteAllBanner, { isLoading: isDeleteAll }] = useDeleteAllBannerMutation();
+  const [deleteAllBanner, { isLoading: isDeleteAll }] =
+    useDeleteAllBannerMutation();
 
   useEffect(() => {
     if (data && Array.isArray(data)) {
@@ -192,7 +193,7 @@ export default function CarouselPage() {
 
   const handleDeleteAll = () => {
     setIsDeleteAllDialogOpen(true);
-  }
+  };
 
   const confirmDeleteAll = async (e) => {
     e.preventDefault();
@@ -210,7 +211,6 @@ export default function CarouselPage() {
   };
 
   // end dlelete all
- 
 
   return (
     <div className="space-y-6">
@@ -225,7 +225,7 @@ export default function CarouselPage() {
 
       <div className="flex justify-between items-center">
         <div className="text-sm text-muted-foreground">
-          {images.length}  images
+          {images.length} images
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -233,13 +233,16 @@ export default function CarouselPage() {
             <DialogTrigger asChild>
               <Button className="cursor-pointer">
                 <Plus className="mr-2 h-4 w-4 bgre" />
-              Add New Image
+                Add New Image
               </Button>
             </DialogTrigger>
 
             <div>
-              <Button  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer" onClick={ handleDeleteAll}  >
-              <Trash className="mr-2 h-4 w-4" />
+              <Button
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+                onClick={handleDeleteAll}
+              >
+                <Trash className="mr-2 h-4 w-4" />
                 Delete All
               </Button>
             </div>
@@ -317,51 +320,56 @@ export default function CarouselPage() {
         </Dialog>
       </div>
 
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {paginatedImages.map((image, index) => (
-          <Card key={index} className="overflow-hidden">
-            <div className="relative aspect-video">
-              <img
-                src={
-                  `${import.meta.env.VITE_API_URL}/images/${image}` ||
-                  "/placeholder.svg"
-                }
-                alt="carousel-img"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute top-2 right-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-background/80 backdrop-blur-sm cursor-pointer"
-                    >
-                      <MoreHorizontal className="h-4 w-4 " />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleEdit(image, index)}
-                      className={"cursor-pointer"}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      onClick={() => handleDelete(image, index)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          <div
+            key={index}
+            className="relative w-full h-40 rounded-md overflow-hidden border"
+          >
+            {/* Image fills the card completely */}
+            <img
+              src={
+                image
+                  ? `${import.meta.env.VITE_API_URL}/images/${image}`
+                  : "/placeholder.svg"
+              }
+              alt="carousel-img"
+              className="w-full h-full object-cover"
+            />
+
+            {/* Dropdown menu at top-right */}
+            <div className="absolute top-1 right-1 z-10">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer p-1"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => handleEdit(image, index)}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive cursor-pointer"
+                    onClick={() => handleDelete(image, index)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 
@@ -471,16 +479,15 @@ export default function CarouselPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete"}
-
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-        {/* Delete Confirmation all */}
-        <AlertDialog
-         open={isDeleteAllDialogOpen}
-         onOpenChange={ setIsDeleteAllDialogOpen}
+      {/* Delete Confirmation all */}
+      <AlertDialog
+        open={isDeleteAllDialogOpen}
+        onOpenChange={setIsDeleteAllDialogOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -499,7 +506,6 @@ export default function CarouselPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
             >
               {isDeleteAll ? "Deleting..." : "Delete"}
-
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
