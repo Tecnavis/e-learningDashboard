@@ -80,7 +80,7 @@ export default function SpecialDaysPage() {
         date: currentItem.date?.slice(0, 10) || "",
         pdf: currentItem.pdf || "",
         image: null,
-        imagePreview: `${import.meta.env.VITE_API_URL}/images/${
+        imagePreview: `${
           currentItem.image
         }`,
       });
@@ -317,7 +317,7 @@ export default function SpecialDaysPage() {
               <img
                 src={
                   day.image
-                    ? `${import.meta.env.VITE_API_URL}/images/${day.image}`
+                    ? `${day.image}`
                     : "/placeholder.svg"
                 }
                 alt={day.title}

@@ -167,7 +167,7 @@ export default function UsersPage() {
                       <Avatar className="h-9 w-9">
                         {
                             user.image ?
-                            <AvatarImage src={`${import.meta.env.VITE_API_URL}/images/${user.image}` || "/placeholder.svg"} alt={user.name} />
+                            <AvatarImage src={`${user.image}` || "/placeholder.svg"} alt={user.name} />
                             :
                         <AvatarFallback>
                           {user.name.charAt(0)}

@@ -111,7 +111,7 @@ export default function CarouselPage() {
 
   const previewSrc = editImage
     ? URL.createObjectURL(editImage)
-    : `${import.meta.env.VITE_API_URL}/images/${currentImage?.image}`;
+    : `${currentImage?.image}`;
 
   const handleEdit = (image, index) => {
     setCurrentImage({ image, index });
@@ -331,7 +331,7 @@ export default function CarouselPage() {
             <img
               src={
                 image
-                  ? `${import.meta.env.VITE_API_URL}/images/${image}`
+                  ? `${image}`
                   : "/placeholder.svg"
               }
               alt="carousel-img"
